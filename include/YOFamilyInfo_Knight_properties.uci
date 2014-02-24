@@ -1,0 +1,93 @@
+/**
+ * Changes to the DefaultProperties common to Knights
+ */
+
+	PrimaryWeapons(0)=class'YOWeapon_WarAxe'
+	PrimaryWeapons(1)=class'YOWeapon_DoubleAxe'
+	PrimaryWeapons(2)=class'YOWeapon_Longsword'
+	PrimaryWeapons(3)=class'YOWeapon_Messer'
+	PrimaryWeapons(4)=class'YOWeapon_Maul'
+	PrimaryWeapons(5)=class'YOWeapon_MorningStar'
+	PrimaryWeapons(6)=class'YOWeapon_Broadsword'
+	PrimaryWeapons(7)=class'YOWeapon_WarHammer'
+	PrimaryWeapons(8)=class'YOWeapon_Flail'
+
+	//SecondaryWeapons(0)=class'CPMWeapon_Buckler'
+	//SecondaryWeapons(1)=class'CPMWeapon_Heater'
+	//SecondaryWeapons(2)=class'CPMWeapon_TowerShield'
+	SecondaryWeapons(3)=class'YOWeapon_BroadDagger'
+	SecondaryWeapons(4)=class'YOWeapon_ThrowingAxe'
+
+	NewPrimaryWeapons(0)=(CWeapon=class'YOWeapon_DoubleAxe',CheckLimitExpGroup=EEXP_2HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_DoubleAxeUse)
+	NewPrimaryWeapons(1)=(CWeapon=class'YOWeapon_PoleAxe',CheckLimitExpGroup=EEXP_2HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_PoleArmUse)
+	NewPrimaryWeapons(2)=(CWeapon=class'YOWeapon_Bearded',CheckLimitExpGroup=EEXP_2HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BeardedUse)
+	NewPrimaryWeapons(3)=(CWeapon=class'YOWeapon_WarHammer',CheckLimitExpGroup=EEXP_HEAVYBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_WarHammerUse)
+	NewPrimaryWeapons(4)=(CWeapon=class'YOWeapon_Maul',CheckLimitExpGroup=EEXP_HEAVYBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MaulUse)
+	NewPrimaryWeapons(5)=(CWeapon=class'YOWeapon_GrandMace',CheckLimitExpGroup=EEXP_HEAVYBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_GrandMaceUse)
+	NewPrimaryWeapons(6)=(CWeapon=class'YOWeapon_Longsword',CheckLimitExpGroup=EEXP_BASTARD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_LongswordUse)
+	NewPrimaryWeapons(7)=(CWeapon=class'YOWeapon_SwordOfWar',CheckLimitExpGroup=EEXP_BASTARD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_SwordOfWarUse)
+	NewPrimaryWeapons(8)=(CWeapon=class'YOWeapon_Messer',CheckLimitExpGroup=EEXP_BASTARD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MesserUse)
+	//NewPrimaryWeapons(9)=(CWeapon=class'CPMWeapon_Flail',CheckLimitExpGroup=EEXP_FLAIL,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_FlailUse)
+	//NewPrimaryWeapons(10)=(CWeapon=class'CPMWeapon_HFlail',CheckLimitExpGroup=EEXP_FLAIL,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HFlailUse)
+
+	NewSecondaryWeapons(0)=(CWeapon=class'YOWeapon_Mace',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MaceUse)
+	NewSecondaryWeapons(1)=(CWeapon=class'YOWeapon_MorningStar',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MorningStarUse)
+	NewSecondaryWeapons(2)=(CWeapon=class'YOWeapon_HolyWaterSprinkler',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HolyWaterSprinklerUse)
+	NewSecondaryWeapons(3)=(CWeapon=class'YOWeapon_Broadsword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BroadswordUse)
+	NewSecondaryWeapons(4)=(CWeapon=class'YOWeapon_Falchion',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_FalchionUse)
+	NewSecondaryWeapons(5)=(CWeapon=class'YOWeapon_NorseSword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_NorseUse)
+
+	NewTertiaryWeapons(0)=(CWeapon=class'YOWeapon_ThrowingAxe')
+	//NewTertiaryWeapons(1)=(CWeapon=class'CPMWeapon_TowerShield')
+	//NewTertiaryWeapons(2)=(CWeapon=class'CPMWeapon_Buckler',bEnabledDefault=false)
+
+	PawnArmorType = ARMORTYPE_HEAVY;
+
+	iPrimaryWeapons=9
+	iSecondaryWeapons=4
+
+	AirSpeed=440.0
+	WaterSpeed=220.0
+	AirControl=0.35
+	//GroundSpeed=180.0
+	
+	`if(`notdefined(InKingClass))
+		ClassReference = ECLASS_KNIGHT
+		Health=100
+	`endif
+	
+	// damage modifiers
+	DamageResistances(EDMG_Swing) = 0.4
+	DamageResistances(EDMG_Pierce) = 0.5
+	DamageResistances(EDMG_Blunt) = 0.6
+
+
+	GroundSpeed=180
+AccelRate=400.0
+SprintAccelRate=100.0
+JumpZ=380.0
+SprintModifier=1.65
+SprintTime=10.0
+DodgeSpeed=400.0
+DodgeSpeedZ=200.0
+BACK_MODIFY=0.8
+STRAFE_MODIFY=0.85
+FORWARD_MODIFY=1.0
+CROUCH_MODIFY=0.65
+//PercentDamageToTake=0.7
+MaxSprintSpeedTime=4
+bCanDodge=false
+iKickCost=25
+fComboAggressionBonus=1.0
+fBackstabModifier=1.0
+iMissMeleeStrikePenalty=10
+iMissMeleeStrikePenaltyBonus=0
+//fShieldStaminaAbsorption=7
+bCanSprintAttack=false
+fStandingSpread=0.05f
+fCrouchingSpread=0.0f
+fWalkingSpread=0.1
+fSprintingSpread=0.25
+fFallingSpread=0.25
+fSpreadPenaltyPerSecond=0.5
+fSpreadRecoveryPerSecond=0.3

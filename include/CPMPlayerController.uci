@@ -1,0 +1,446 @@
+/**
+ * Changes common to all CPM Player Controllers go here (generally overrides to AOCPlayerController)
+ */
+
+// Using chat for console commands --not working atm//
+reliable server function SendChatMessage(string Message, EAOCFaction DesignatedTeam)
+{
+	/*local string ConCmd;
+	ReceiveChatMessage("", "SENDCHATMSG"$Left(Message, 2)$"WAT", EFAC_ALL, true);
+	if (Left(Message, 2) ~= "!" || Left(Message, 2) ~= " !")
+	{
+		ConCmd = Right(Message, Len(Message)-1);
+		ReceiveChatMessage("Console:", ConsoleCommand(ConCmd), EFAC_ALL, true);
+		if(!(Left(ConCmd, 11) ~= "AdminLogin"))
+			AOCGame(WorldInfo.Game).BroadcastMessage(self, Message, DesignatedTeam);
+	}
+	else*/
+		AOCGame(WorldInfo.Game).BroadcastMessage(self, Message, DesignatedTeam);
+}
+
+//CPM config commands
+exec function AdminSetRUPNeeded(bool bRUPNeeded)
+{
+	ServerSetRUPNeeded(bRUPNeeded);
+}
+
+reliable server function ServerSetRUPNeeded(bool bRUPNeeded)
+{
+	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		ICPMGame(WorldInfo.Game).SetRUPNeeded(bRUPNeeded);
+		ClientDisplayConsoleMessage("RUPNeeded set to"@bRUPNeeded);
+	}
+}
+
+exec function AdminSetPauseMode(int PauseMode)
+{
+	ServerSetPauseMode(PauseMode);
+}
+
+reliable server function ServerSetPauseMode(int PauseMode)
+{
+	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		ICPMGame(WorldInfo.Game).SetPauseMode(PauseMode);
+		ClientDisplayConsoleMessage("PauseMode set to:"@PauseMode);
+	}
+}
+
+exec function AdminSetYeOldeBalance(bool On)
+{
+	ServerSetYeOldeBalance(On);
+}
+
+reliable server function ServerSetYeOldeBalance(bool OldBalanceOn)
+{
+	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		ICPMGame(WorldInfo.Game).SetYeOldeBalance(OldBalanceOn);
+		ClientDisplayConsoleMessage("Ye Olde Balance set to:"@OldBalanceOn);
+	}
+}
+
+exec function AdminForceCustomizationOn(bool force)
+{
+	ServerForceCustomizationOn(force);
+}
+
+reliable server function ServerForceCustomizationOn(bool force)
+{
+	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		ICPMGame(WorldInfo.Game).ForceCustomizationOn(force);
+		ClientDisplayConsoleMessage("Forced Customization:"@force);
+	}
+}
+
+exec function AdminSetTKPunishMode(int Mode)
+{
+	ServerSetTKPunishMode(Mode);
+}
+
+reliable server function ServerSetTKPunishMode(int Mode)
+{
+	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		ICPMGame(WorldInfo.Game).SetTKPunishMode(Mode);
+		ClientDisplayConsoleMessage("TK Punish Mode set to:"@Mode);
+	}
+}
+
+function bool IsHidingCustomization()
+{
+	return ClientCfg.default.NoCustomization && !bForcedCustomization;
+}
+
+exec function HideCustomization(bool bHide)
+{
+	local AOCPawn aPawn;
+
+	ClientCfg.default.NoCustomization = bHide;
+	
+	if(ClientCfg.default.NoCustomization && !bForcedCustomization
+		&& ICPMReadyUpGame(WorldInfo.Game) != None) //Check that it's a team game!
+		foreach WorldInfo.AllActors(class'AOCPawn', aPawn)
+			aPawn.DisplayDefaultCustomizationInfoOnPawn();
+	ClientCfg.static.StaticSaveConfig();
+}
+
+reliable client function NotifyForcedCustomizationOption(bool forced)
+{
+	bForcedCustomization = forced;
+}
+
+// The START of a fix to FP spectating + fast free cam //
+State Spectating
+{
+	function BeginState(Name PreviousStateName)
+	{
+		super.BeginState(PreviousStateName);
+		OriginalSpectatorCamSpeed = SpectatorCameraSpeed;
+	}
+
+	function EndState(Name NextStateName)
+	{
+		SpectatorCameraSpeed = OriginalSpectatorCamSpeed;
+		super.EndState(NextStateName);
+	}
+
+	function ProcessMove(float DeltaTime, vector NewAccel, eDoubleClickDir DoubleClickMove, rotator DeltaRot)
+	{
+		NewAccel *= (bCameraSprinting ? 3.0 : 1.0);
+		SpectatorCameraSpeed = OriginalSpectatorCamSpeed * (bCameraSprinting ? 3.0 : 1.0);
+		super.ProcessMove(DeltaTime, NewAccel, DoubleClickMove, DeltaRot);
+	}
+
+	simulated event GetPlayerViewPoint( out vector POVLocation, out Rotator POVRotation )
+	{
+		local float DeltaTime;
+		local UTPawn P;
+		local Rotator TempPOVRot;
+		local bool bAlreadyCachedLocation;
+
+		P = IsLocalPlayerController() ? UTPawn(CalcViewActor) : None;
+		/*
+		if (PlayerCamera == None
+			&& LastCameraTimeStamp == WorldInfo.TimeSeconds
+			&& CalcViewActor == ViewTarget
+			&& CalcViewActor != None
+			&& CalcViewActor.Location == CalcViewActorLocation
+			&& CalcViewActor.Rotation == CalcViewActorRotation
+			)
+		{
+			if ( (P == None) || ((P.EyeHeight == CalcEyeHeight) && (P.WalkBob == CalcWalkBob)) )
+			{
+				// use cached result
+				POVLocation = CalcViewLocation;
+				POVRotation = CalcViewRotation;
+				return;
+			}
+		}
+		*/
+		DeltaTime = WorldInfo.TimeSeconds - LastCameraTimeStamp;
+		LastCameraTimeStamp = WorldInfo.TimeSeconds;
+
+		// support for using CameraActor views
+		if ( CameraActor(ViewTarget) != None )
+		{
+			if ( PlayerCamera == None )
+			{
+				super(UTPlayerController).ResetCameraMode();
+				SpawnCamera();
+			}
+			super(UTPlayerController).GetPlayerViewPoint( POVLocation, POVRotation );
+		}
+		else
+		{
+			if ( PlayerCamera != None )
+			{
+				PlayerCamera.Destroy();
+				PlayerCamera = None;
+			}
+
+			if ( ViewTarget != None )
+			{
+				POVRotation = Rotation;
+				if ( AOCSW_Base(ViewTarget) != None )
+				{
+					AOCSW_Base(ViewTarget).bSpectatedView = true;
+					ViewTarget.CalcCamera( DeltaTime, POVLocation, TempPOVRot, FOVAngle );
+					AOCSW_Base(ViewTarget).bSpectatedView = false;
+				}
+				else if ( UTVehicle(ViewTarget) != None )
+				{
+					UTVehicle(ViewTarget).bSpectatedView = true;
+					ViewTarget.CalcCamera( DeltaTime, POVLocation, TempPOVRot, FOVAngle );
+					UTVehicle(ViewTarget).bSpectatedView = false;
+				}
+				else
+				{
+					ViewTarget.CalcCamera( DeltaTime, POVLocation, TempPOVRot, FOVAngle );
+				}
+
+				if(AOCPawn(ViewTarget) != none)
+				{
+					//Smooth out camera a bit for pawns
+					
+					if ( bFreeCamera )
+					{
+						//POVRotation = RInterpTo(CalcViewRotation, TempPOVRot, DeltaTime, 10.0f);
+						//POVRotation = RInterpTo(Rotation, TempPOVRot, DeltaTime, 10.0f);
+						//SetRotation(POVRotation);
+						
+						POVRotation = Rotation;
+						POVLocation = ViewTarget.Location;
+					
+						POVLocation = VInterpTo(CalcViewLocation, POVLocation, DeltaTime, 10.f);
+						CalcViewLocation = POVLocation; //Cache the location prior to offsetting it
+						bAlreadyCachedLocation = true;
+						
+						POVLocation = POVLocation - (Vector(POVRotation)*SpectatorBaseZoomDistance + Vector(POVRotation)*SpectatorZoomIncrement*SpectatorZoomLevel) + Vect(0,0,20);
+					}
+					else
+					{
+						if(bBehindView)
+						{
+							POVRotation = RInterpTo(Rotation, TempPOVRot, DeltaTime, 10.0f);
+							SetRotation(POVRotation);
+
+							POVLocation = VInterpTo(CalcViewLocation, POVLocation, DeltaTime, 10.f);
+							CalcViewLocation = POVLocation; //Cache the location prior to offsetting it
+							bAlreadyCachedLocation = true;
+						
+							POVLocation = POVLocation - Vector(POVRotation)*SpectatorBaseZoomDistance + Vect(0,0,20);
+						}
+						else
+						{
+							//Not much we can do here; the ownermesh is still going to be crazy jittery
+						
+							//POVRotation = RInterpTo(Rotation, TempPOVRot, DeltaTime, 10.0f);
+							//SetRotation(POVRotation);
+							TempPOVRot.Pitch = Pawn(ViewTarget).RemoteViewPitch << 8;
+							TempPOVRot.Pitch = CorrectSpectatorPitch(TempPOVRot.Pitch);
+							POVRotation = RInterpTo(CalcViewRotation, TempPOVRot, DeltaTime, 20.0f);
+							TempPOVRot.Yaw = Pawn(ViewTarget).Rotation.Yaw;
+							TempPOVRot.Roll = Pawn(ViewTarget).Rotation.Roll;
+							//AOCPawn(ViewTarget).SetRotation(TempPOVRot);
+						}
+					}	
+					
+					SetLocation(POVLocation);			
+				}
+			}
+			else
+			{
+				CalcCamera( DeltaTime, POVLocation, POVRotation, FOVAngle );
+				return;
+			}
+		}
+
+		// apply view shake
+		POVRotation = Normalize(POVRotation + ShakeRot);
+		POVLocation += ShakeOffset >> Rotation;
+
+		if( CameraEffect != none )
+		{
+			CameraEffect.UpdateLocation(POVLocation, POVRotation, GetFOVAngle());
+		}
+
+
+		// cache result
+		CalcViewActor = ViewTarget;
+		CalcViewActorLocation = ViewTarget.Location;
+		CalcViewActorRotation = ViewTarget.Rotation;
+		if(!bAlreadyCachedLocation)
+		{
+			CalcViewLocation = POVLocation;
+		}
+		CalcViewRotation = POVRotation;
+
+		if ( P != None )
+		{
+			CalcEyeHeight = P.EyeHeight;
+			CalcWalkBob = P.WalkBob;
+		}
+	}
+}
+
+function int CorrectSpectatorPitch(int Pitch)
+{
+	//IT'S A DIRTY HACK BUT IT WORKS AND I DON'T CARE. THIS WAS A PAIN IN THE *ARSE*.
+	//ReceiveChatMessage("Pitch", string(Pitch), EFAC_ALL, true);
+	if (Pitch < 18000)
+	{
+		Pitch = int(float(Pitch)*(8597.f/16383.f));
+	}
+	else
+	{
+		Pitch = 65536 - int(float(65536-Pitch)*(13236.f/16384.f));
+	}
+	return Pitch;
+}
+
+
+function SwitchToNewClassWeapons(EAOCFaction NewFaction)
+{
+	PrimaryWeapon = PrimaryWeapon.static.GetWeaponClassForNewFaction(NewFaction);
+	AltPrimaryWeapon = AltPrimaryWeapon.static.GetWeaponClassForNewFaction(NewFaction);
+	SecondaryWeapon = SecondaryWeapon.static.GetWeaponClassForNewFaction(NewFaction);
+	TertiaryWeapon = TertiaryWeapon.static.GetWeaponClassForNewFaction(NewFaction);
+}
+
+simulated function String GetViewName(out EAOCFaction Faction, out float Dist, out string ExtraText, out byte Type)
+{
+	local Actor myViewTarget;
+	local AOCPawn PawnTarget;
+	local Vector Loc,Norm;
+	local Vector Start,End;
+	local Vector PawnEnd;
+	local int bHold;
+
+	Faction = EFAC_NONE;
+	Dist = 0.0f;
+	if (Pawn == none)
+		return "None";
+
+	Start = Pawn.GetPawnViewLocation();
+	End = Pawn.GetPawnViewLocation() + Vector(Pawn.GetViewRotation()) * 200;
+	myViewTarget = Trace( Loc, Norm, End, Start, true );
+	if (myViewTarget == none)
+	{
+		PawnEnd = Pawn.GetPawnViewLocation() + Vector(Pawn.GetViewRotation()) * 600;
+		myViewTarget = Trace( Loc, Norm, PawnEnd, Start, true );
+		if (myViewTarget == none)
+			return "None";
+		else if (AOCPawn(myViewTarget) != none)
+		{
+			PawnTarget = AOCPawn(myViewTarget);
+			if(IAOCUsable(myViewTarget).CanBeUsed(AOCPawn(Pawn).PawnFamily.default.FamilyFaction, AOCPawn(Pawn)) && AOCWeapon(Pawn.Weapon).bCanExecute && AOCWeapon(Pawn.Weapon).default.bCanExecute
+				&& Abs(PawnTarget.Location.Z - Pawn.Location.Z) <= class'CPMPawn'.default.fExecutionZRange)
+			{
+				Type = 2;
+				return "Press \""$FindKeyForCommand("GBA_Use")$" \"to execute"; 
+			}
+			else
+			{
+				if (PawnTarget.PlayerReplicationInfo == none)
+					return "None";
+				Dist = VSize(PawnTarget.Location - Pawn.Location);
+				Faction = PawnTarget.PawnFamily.default.FamilyFaction;
+				Type = 0;
+				ExtraText = "";
+				return PawnTarget.PlayerReplicationInfo.PlayerName;
+			}
+		}
+		return "None";
+	}
+	bHold = 0;
+	if (IAOCUsable(myViewTarget) != none && AOCPawn(myViewTarget) == none && IAOCUsable(myViewTarget).CanBeUsed(AOCPawn(Pawn).PawnFamily.default.FamilyFaction, AOCPawn(Pawn), bHold))
+	{
+		Type = 2;
+		if (bHold == 0)
+		{
+			return "Press \""$FindKeyForCommand("GBA_Use")$"\" to use"; 
+		}
+		else
+		{
+			return "Hold \""$FindKeyForCommand("GBA_Use")$"\" to use"; 
+		}
+	}
+	else if (AOCPawn(myViewTarget) != none)
+	{
+		PawnTarget = AOCPawn(myViewTarget);
+		bHold = 0;
+		if(IAOCUsable(myViewTarget).CanBeUsed(AOCPawn(Pawn).PawnFamily.default.FamilyFaction, AOCPawn(Pawn), bHold))
+		{
+			if (AOCWeapon(Pawn.Weapon).bCanExecute && AOCWeapon(Pawn.Weapon).default.bCanExecute
+				&& Abs(PawnTarget.Location.Z - Pawn.Location.Z) <= class'CPMPawn'.default.fExecutionZRange)
+			{
+				Type = 2;
+				if (bHold == 0)
+				{
+					return "Press \""$FindKeyForCommand("GBA_Use")$"\" to execute"; 
+				}
+				else
+				{
+					return "Hold \""$FindKeyForCommand("GBA_Use")$"\" to execute"; 
+				}
+			}
+		}
+		else
+		{
+			if (PawnTarget.PlayerReplicationInfo == none)
+				return "None";
+			Dist = VSize(PawnTarget.Location - Pawn.Location);
+			Faction = PawnTarget.PawnFamily.default.FamilyFaction;
+			Type = 0;
+			ExtraText = "";
+			return PawnTarget.PlayerReplicationInfo.PlayerName;
+		}
+	}
+	else if (myViewTarget.bShowsInformationBox)
+	{
+		Type = 1;
+		// Extra Text is Information Text
+		ExtraText = myViewTarget.InformationBoxText;
+
+		// Return string is Title
+		return myViewTarget.InformationBoxTitle;
+	}
+
+	return "None";
+}
+
+// For getting that stupid pause message to FUCK OFF even though it SHOULD do it every time. //
+exec function ClearPauseMessage()
+{
+	NotifyClearedPause();
+	ServerNotifyClearedPause();
+}
+
+reliable server function ServerNotifyClearedPause()
+{
+	local AOCPlayerController PC;
+	if(PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
+	{
+		foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+		{
+			PC.NotifyClearedPause();
+		}
+	}
+}
+
+// Hammer time. //
+exec function ActivateHammerTime(string key)
+{
+	ServerActivateHammerTime(key);
+}
+
+reliable server function ServerActivateHammerTime(string key)
+{
+	if(class<AOCWeapon_Maul>(PrimaryWeapon) != None  && (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone) && key == "mineisbigger")
+	{
+		AOCPawn(Pawn).GiveUserWeapon(class'CPMWeapon_HammerTimeMaul');
+	}
+}

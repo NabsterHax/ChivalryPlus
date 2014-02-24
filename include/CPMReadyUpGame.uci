@@ -1,0 +1,213 @@
+/*
+ * Game functions for the ready up system
+ * 
+ * DO NOT FORGET TO INCLUDE VARIABLES FUNCTIONS AND THEIR DEFAULT PROPERTIES IN THE CLASS
+ * 
+ *	
+ * var bool bAgathaRUP;
+ * var bool bMasonRUP;
+ * var bool bForceRUP; //True if admin has forced the game ready
+ * var config bool bRUPNeeded; //Setting determines if the RUP system is used IN THIS GAME-MODE ONLY. Should be saved across restarts and map loads.
+ * 
+ * var config int PauseMode; //0:Pausing disabled, 1:Only admin can pause, 2:Teams agree to pause, 3:Any player can pause 
+ * var bool bAgathaPause;
+ * var bool bMasonPause;
+ * 
+ */
+
+function ReadyUp(EAOCFaction Fac)
+{
+	if(!IsInState('AOCPreRound') || !GlobCfg.default.RUPNeeded)
+		return;
+
+	if(Fac == EFAC_Agatha && !bAgathaRUP)
+	{
+		bAgathaRUP = true;
+		BroadcastMessage(none, "Agatha team is ready.", EFAC_ALL, true, true, "#2EFE2E");
+	}
+	else if(Fac == EFAC_Mason && !bMasonRUP)
+	{
+		bMasonRUP = true;
+		BroadcastMessage(none, "Mason team is ready.", EFAC_ALL, true, true, "#2EFE2E");
+	}		
+}   
+
+function UnreadyUp(EAOCFaction Fac)
+{
+	if(!IsInState('AOCPreRound') || !GlobCfg.default.RUPNeeded)
+		return;
+
+	if (bForceRUP)
+		return;
+
+	if(Fac == EFAC_Agatha && bAgathaRUP)
+	{
+		bAgathaRUP = false;
+		BroadcastMessage(none, "Agatha team is no longer ready.", EFAC_ALL, true, true, "#FF0000");
+	}
+	else if(Fac == EFAC_Mason && bMasonRUP)
+	{
+		bMasonRUP = false;
+		BroadcastMessage(none, "Mason team is no longer ready.", EFAC_ALL, true, true, "#FF0000");
+	}
+}
+
+function ForceReady()
+{
+	if(!IsInState('AOCPreRound') || !GlobCfg.default.RUPNeeded)
+		return;
+
+	if (!bForceRUP)
+	{
+		bForceRUP = true;
+		bAgathaRUP = true;
+		bMasonRUP = true;
+		BroadcastMessage(none, "Admin has forced ready.", EFAC_ALL, true, true, "#DF7401");
+	}
+}
+
+function ForceUnready()
+{
+	if(!IsInState('AOCPreRound') || !GlobCfg.default.RUPNeeded)
+		return;
+
+	bForceRUP = false;
+	bAgathaRUP = false;
+	bMasonRUP = false;
+	BroadcastMessage(none, "Admin has cancelled ready.", EFAC_ALL, true, true, "#DF7401");
+}
+
+function bool ShouldCountDown()
+{
+	local AOCPlayerController PC;
+
+	if (super.ShouldCountDown() && ((bAgathaRUP && bMasonRUP) || !GlobCfg.default.RUPNeeded))
+	{
+		return true;
+	}
+	else
+	{
+		foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+		{
+			if(AOCPawn(PC.Pawn).PawnState == ESTATE_FROZEN)
+				PC.WarmupUnfrozen();
+			if(GlobCfg.default.RUPNeeded && WorldInfo.Pauser == None)
+				ICPMReadyUpPC(PC).ShowReadyUpHeader(true);
+			else
+				ICPMReadyUpPC(PC).ShowReadyUpHeader(false);
+		}
+		return false;
+	}
+}
+
+// ADVANCED PAUSING //
+function bool AllowPausing( optional PlayerController PC )
+{
+	return true; //Everyone can use the pause feature - SetPause decides if it's valid
+}
+
+function bool SetPause(PlayerController PC, optional delegate<CanUnpause> CanUnpauseDelegate = CanUnpause)
+{
+	local AOCPlayerController AOCPC;
+	local bool bPauseResult;
+	if(true) //Super(GameInfo).SetPause(PC, CanUnpauseDelegate))
+	{
+		switch(GlobCfg.default.PauseMode)
+		{
+		case 0:
+			bPauseResult = false;
+			break;
+		case 1:
+			if (WorldInfo.NetMode == NM_Standalone || AccessControl.IsAdmin(PC))
+			{
+				bPauseResult = true;
+				BroadcastMessage(none, "Admin " $ AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " has paused the game.", EFAC_ALL, true, true, "#DF7401");
+			}
+			break;
+
+		case 2:
+			bPauseResult = false;
+			//Admins can still pause on their own
+			if (WorldInfo.NetMode == NM_Standalone || AccessControl.IsAdmin(PC))
+			{
+				bPauseResult = true;
+				BroadcastMessage(none, "Admin " $ AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " has paused the game.", EFAC_ALL, true, true, "#DF7401");
+			}
+			else if (AOCPlayerController(PC).CurrentFamilyInfo.default.FamilyFaction == EFAC_Agatha)
+			{
+				bAgathaPause=true;
+				if(bMasonPause)
+				{
+					BroadcastMessage(none, AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " for team Agatha has accepted the pause request.", EFAC_ALL, true, true, "#DF7401");
+				}
+				else
+				{
+					BroadcastMessage(none, AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " for team Agatha has requested a pause.", EFAC_ALL, true, true, "#DF7401");
+					SetTimer(10.0f, false, 'PauseRequestTimeout');
+				}
+			}
+			else if (AOCPlayerController(PC).CurrentFamilyInfo.default.FamilyFaction == EFAC_Mason)
+			{
+				bMasonPause=true;
+				if(bAgathaPause)
+				{
+					BroadcastMessage(none, AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " for team Mason has accepted the pause request.", EFAC_ALL, true, true, "#DF7401");
+				}
+				else
+				{
+					BroadcastMessage(none, AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " for team Mason has requested a pause.", EFAC_ALL, true, true, "#DF7401");
+					SetTimer(10.0f, false, 'PauseRequestTimeout');
+				}
+			}		
+
+			if (bAgathaPause && bMasonPause)
+			{
+				ClearTimer('PauseRequestTimeout');
+				bPauseResult = true;
+			}
+			break;
+		
+		case 3:
+			BroadcastMessage(none, AOCPlayerController(PC).PlayerReplicationInfo.PlayerName $ " has paused the game.", EFAC_ALL, true, true, "#DF7401");
+			bPauseResult = true;
+			break;
+
+		default:
+			bPauseResult = false;
+			break;
+		}
+		
+		if(bPauseResult)
+		{
+			Super(GameInfo).SetPause(PC, CanUnpauseDelegate);
+			AOCGRI(GameReplicationInfo).Speed = -1.0f;
+			foreach WorldInfo.AllControllers(class'AOCPlayerController', AOCPC)
+			{
+				AOCPC.NotifyPaused();
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function ClearPause()
+{
+	bAgathaPause = false;
+	bMasonPause = false;
+	super(AOCGame).ClearPause();
+}
+
+function PauseRequestTimeout()
+{
+	bMasonPause = false;
+	bAgathaPause = false;
+	BroadcastMessage(none, "Pause request timed out.", EFAC_ALL, true, true, "#DF7401");
+}

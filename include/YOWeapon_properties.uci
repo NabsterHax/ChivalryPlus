@@ -1,0 +1,12 @@
+/**
+ * Changes to the DefaultProperties common to Weapons
+ *
+ */
+
+EndFeintWindowTime=0
+EndFeintWindowTimeCombo=0
+FlinchTime1H=0.8f
+FlinchTime2H=0.8f
+SpecialDazeLength=1.5f
+
+ComboFeintCooldown=0

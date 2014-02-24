@@ -1,0 +1,9 @@
+/**
+ * Changes common to all CPM Weapons (generally overriding AOCWeapon)
+ */
+//remove combo-feint cooldown -- keeping this to avoid unnecessary 0 length timers
+simulated function StartComboFeintCooldown(float time)
+{
+	//bComboFeintCooldown = true;
+	//SetTimer(time, false, 'EndComboFeintCooldown');
+}

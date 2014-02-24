@@ -1,0 +1,87 @@
+/**
+ * Changes to the DefaultProperties common to Vanguards
+ */
+
+	PrimaryWeapons(0)=class'YOWeapon_Broadsword'
+	PrimaryWeapons(1)=class'YOWeapon_Longsword'
+	PrimaryWeapons(2)=class'YOWeapon_Messer'
+	PrimaryWeapons(3)=class'YOWeapon_WarAxe'
+	PrimaryWeapons(4)=class'YOWeapon_WarHammer'
+	PrimaryWeapons(5)=class'YOWeapon_Halberd'
+
+	//SecondaryWeapons(0)=class'CPMWeapon_Buckler'
+	//SecondaryWeapons(1)=class'CPMWeapon_Heater'
+	SecondaryWeapons(2)=class'YOWeapon_BroadDagger'
+	SecondaryWeapons(3)=class'YOWeapon_ThrowingKnife'
+	SecondaryWeapons(4)=class'YOWeapon_ThrowingAxe'
+	SecondaryWeapons(5)=class'YOWeapon_OilPot'
+	
+	NewPrimaryWeapons(0)=(CWeapon=class'YOWeapon_Greatsword',CheckLimitExpGroup=EEXP_2HSWORD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_GreatswordUse)
+	NewPrimaryWeapons(1)=(CWeapon=class'YOWeapon_Claymore',CheckLimitExpGroup=EEXP_2HSWORD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_ClaymoreUse)
+	NewPrimaryWeapons(2)=(CWeapon=class'YOWeapon_Zweihander',CheckLimitExpGroup=EEXP_2HSWORD,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_ZweihanderUse)
+	NewPrimaryWeapons(3)=(CWeapon=class'YOWeapon_Spear',CheckLimitExpGroup=EEXP_SPEAR,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_SpearUse)
+	NewPrimaryWeapons(4)=(CWeapon=class'YOWeapon_Fork',CheckLimitExpGroup=EEXP_SPEAR,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_ForkUse)
+	NewPrimaryWeapons(5)=(CWeapon=class'YOWeapon_Brandistock',CheckLimitExpGroup=EEXP_SPEAR,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BrandistockUse)
+	NewPrimaryWeapons(6)=(CWeapon=class'YOWeapon_Bardiche',CheckLimitExpGroup=EEXP_POLEARM,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BardicheUse)
+	NewPrimaryWeapons(7)=(CWeapon=class'YOWeapon_Bill',CheckLimitExpGroup=EEXP_POLEARM,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BillUse)
+	NewPrimaryWeapons(8)=(CWeapon=class'YOWeapon_Halberd',CheckLimitExpGroup=EEXP_POLEARM,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HalberdUse)
+	NewPrimaryWeapons(9)=(CWeapon=class'YOWeapon_PoleHammer',CheckLimitExpGroup=EEXP_DL1,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_PoleHammerUse)
+	NewSecondaryWeapons(0)=(CWeapon=class'YOWeapon_Dagesse',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_DagesseUse)
+	NewSecondaryWeapons(1)=(CWeapon=class'YOWeapon_Saber',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_SaberUse)
+	NewSecondaryWeapons(2)=(CWeapon=class'YOWeapon_Cudgel',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_CudgelUse)
+	NewSecondaryWeapons(3)=(CWeapon=class'YOWeapon_WarAxe',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_WarAxeUse)
+	NewSecondaryWeapons(4)=(CWeapon=class'YOWeapon_Hatchet',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HatchetUse)
+	NewSecondaryWeapons(5)=(CWeapon=class'YOWeapon_Dane',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_DaneUse)
+	NewTertiaryWeapons(0)=(CWeapon=class'YOWeapon_ThrowingAxe')
+	NewTertiaryWeapons(1)=(CWeapon=class'YOWeapon_ThrowingKnife')
+	NewTertiaryWeapons(2)=(CWeapon=class'YOWeapon_SmokePot')
+
+	PawnArmorType = ARMORTYPE_MEDIUM
+
+	iPrimaryWeapons=6
+	iSecondaryWeapons=3
+
+	AirSpeed=440.0
+	WaterSpeed=220.0
+	AirControl=0.35
+	//GroundSpeed=220.0
+
+	ClassReference = ECLASS_Vanguard
+
+	// damage modifiers
+	DamageResistances(EDMG_Swing) = 0.6
+	DamageResistances(EDMG_Pierce) = 0.8
+	DamageResistances(EDMG_Blunt) = 0.7
+
+
+	GroundSpeed=190
+AccelRate=500.0
+SprintAccelRate=100.0
+JumpZ=380.0
+SprintModifier=1.65
+SprintTime=10.0
+DodgeSpeed=400.0
+DodgeSpeedZ=200.0
+Health=100
+BACK_MODIFY=0.8
+STRAFE_MODIFY=0.85
+FORWARD_MODIFY=1.0
+CROUCH_MODIFY=0.65
+//PercentDamageToTake=0.8
+MaxSprintSpeedTime=3.5
+bCanDodge=false
+iKickCost=25
+iDodgeCost=40
+fComboAggressionBonus=1.0
+fBackstabModifier=1.0
+iMissMeleeStrikePenalty=10
+iMissMeleeStrikePenaltyBonus=0
+//fShieldStaminaAbsorption=6
+bCanSprintAttack=true
+fStandingSpread=0.05f
+fCrouchingSpread=0.0f
+fWalkingSpread=0.1
+fSprintingSpread=0.25
+fFallingSpread=0.25
+fSpreadPenaltyPerSecond=0.5
+fSpreadRecoveryPerSecond=0.3

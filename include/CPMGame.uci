@@ -1,0 +1,273 @@
+/**
+ * Changes common to all CPM game types go here (generally overrides to AOCGame)
+ */
+
+// Hardcoded AOCPawn OVERRIDES // --Most probably won't be needed after the patch!
+//CPMDuel needs to override this class itself, so don't define it if we're in that class
+
+function AdminChangeTeam(AOCPlayerController ChangeInstigator, String PlayerName)
+{
+	local AOCPlayerController Target;
+	local int Offset, i;
+		
+	if(!AccessControl.IsAdmin(ChangeInstigator))
+	{
+		return;
+	}
+	
+	Target = AOCPlayerController(AccessControl.GetControllerFromString(PlayerName));
+	
+	if(Target == none)
+	{
+		return;
+	}
+	
+	if(class<AOCFamilyInfo_Agatha_King>(Target.CurrentFamilyInfo) != None || class<AOCFamilyInfo_Mason_King>(Target.CurrentFamilyInfo) != None)
+	{
+		return;
+	}
+	
+	if(Target.CurrentFamilyInfo.default.FamilyFaction == EFAC_Agatha)
+	{
+		Offset = 5;
+	}
+	else
+	{
+		Offset = -5;
+	}
+	
+	for(i = 0; i < class<AOCPawn>(DefaultPawnClass).default.AllClasses.Length && class<AOCPawn>(DefaultPawnClass).default.AllClasses[i] != Target.CurrentFamilyInfo; ++i);
+	i += Offset;
+	
+	Target.SetNewClass(class<AOCPawn>(DefaultPawnClass).default.AllClasses[i]);
+}
+// End of AOCPawn Overrides //
+
+function ProModWelcome(Controller NewPC)
+{
+	if (GlobCfg.default.YeOldeBalance)
+	{
+		AOCPlayerController(NewPC).ReceiveChatMessage("","You are playing Ye Olde Chivalry+ (Balance Mod)", EFAC_ALL, true, true, "#F24646");
+	}
+	else
+	{
+		AOCPlayerController(NewPC).ReceiveChatMessage("","You are playing Chivalry+", EFAC_ALL, true, true, "#F24646");
+	}
+}
+
+//GlobCfg commands
+function SetRUPNeeded(bool bSetRUPNeeded)
+{
+	GlobCfg.default.RUPNeeded = bSetRUPNeeded;
+	GlobCfg.static.StaticSaveConfig();
+}
+
+function SetPauseMode(int iPauseMode)
+{
+	GlobCfg.default.PauseMode = iPauseMode;
+	GlobCfg.static.StaticSaveConfig();
+}
+
+function int GetPauseMode()
+{
+	return GlobCfg.default.PauseMode;
+}
+
+function SetYeOldeBalance(bool OldBalanceOn)
+{
+	GlobCfg.default.YeOldeBalance = OldBalanceOn;
+	GlobCfg.static.StaticSaveConfig();
+}
+
+function ForceCustomizationOn(bool force)
+{
+	local AOCPlayerController PC;
+	GlobCfg.default.ForceCustomizationOn = force;
+	GlobCfg.static.StaticSaveConfig();
+	foreach AllActors(class'AOCPlayerController', PC)
+	{
+		ICPMPlayerController(PC).NotifyForcedCustomizationOption(force);
+	}
+}
+
+function SetTKPunishMode(int mode)
+{
+	GlobCfg.default.TKPunishMode = mode;
+	GlobCfg.static.StaticSaveConfig();
+}
+
+// TK Punishment System //
+function int GetTeamDamagePenalty(Controller PC)
+{
+	local int TeamDamagePenalty;
+	local int TeamDamageMessage;
+
+	TeamDamagePenalty = FFloor(AOCPlayerController(PC).TeamDamageDealt / 10.f);
+	if (TeamDamagePenalty > 0 && GlobCfg.default.TKPunishMode == 1)
+	{
+		TeamDamageMessage = (TeamDamagePenalty > 1) ? 31 : 30;
+		LocalizedPrivateMessage(PlayerController(PC), TeamDamageMessage, class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA",  String(TeamDamagePenalty), ""),, true, "#FF4040");
+		return TeamDamagePenalty;
+	}
+	return 0;
+}
+
+// PAUSE FIX + CUSTOMIZATION NOTIFY //
+event PostLogin( playercontroller NewPlayer )
+{
+	local AOCPlayerController PC;
+	local Actor A;
+	local string Address, StatGuid;
+	local int pos, i;
+	local Sequence GameSeq;
+	local array<SequenceObject> AllInterpActions;
+	
+
+	//`log("POST LOGIN");
+	// manually incorporate super class implementations
+
+	// update player count
+	NumPlayers++;
+
+	// Tell the online subsystem the number of players in the game
+	UpdateGameSettingsCounts();
+
+	// save network address for re-associating with reconnecting player, after stripping out port number
+	Address = NewPlayer.GetPlayerNetworkAddress();
+	pos = InStr(Address,":");
+	NewPlayer.PlayerReplicationInfo.SavedNetworkAddress = (pos > 0) ? left(Address,pos) : Address;
+
+	// check if this player is reconnecting and already has PRI
+	FindInactivePRI(NewPlayer);
+
+	if ( !bDelayedStart )
+	{
+		// start match, or let player enter, immediately
+		bRestartLevel = false;	// let player spawn once in levels that must be restarted after every death
+		if ( 	bWaitingToStartMatch )
+			StartMatch();
+		else
+			RestartPlayer(newPlayer);
+		bRestartLevel = Default.bRestartLevel;
+	}
+
+	if (NewPlayer.Pawn != None)
+	{
+		NewPlayer.Pawn.ClientSetRotation(NewPlayer.Pawn.Rotation);
+	}
+
+	NewPlayer.ClientCapBandwidth(NewPlayer.Player.CurrentNetSpeed);
+	UpdateNetSpeeds();
+
+	GenericPlayerInitialization(NewPlayer);
+
+	// Tell the new player the stat guid
+	if (GameReplicationInfo.bMatchHasBegun && OnlineSub != None && OnlineSub.StatsInterface != None)
+	{
+		// Get the stat guid for the server
+		StatGuid = OnlineSub.StatsInterface.GetHostStatGuid();
+		if (StatGuid != "")
+		{
+			NewPlayer.ClientRegisterHostStatGuid(StatGuid);
+		}
+	}
+
+	// Tell the player to disable voice by default and use the push to talk method
+	NewPlayer.ClientStopNetworkedVoice();
+	//`log("JOIN PLAYER ONLY SPECT?"@NewPlayer.PlayerReplicationInfo.bOnlySpectator);
+	if (NewPlayer.PlayerReplicationInfo.bOnlySpectator)
+	{
+		NewPlayer.ClientGotoState('Spectating');
+		NewPlayer.PlayerReplicationInfo.bIsSpectator = true;
+		AOCPRI(NewPlayer.PlayerReplicationInfo).bIsVoluntarySpectator = true;
+		NewPlayer.PlayerReplicationInfo.bNetDirty = true;
+	}
+
+	// add the player to any matinees running so that it gets in on any cinematics already running, etc
+	GameSeq = WorldInfo.GetGameSequence();
+	if (GameSeq != None)
+	{
+		// find any matinee actions that exist
+		GameSeq.FindSeqObjectsByClass(class'SeqAct_Interp', true, AllInterpActions);
+
+		// tell them all to add this PC to any running Director tracks
+		for (i = 0; i < AllInterpActions.Length; i++)
+		{
+			SeqAct_Interp(AllInterpActions[i]).AddPlayerToDirectorTracks(NewPlayer);
+		}
+	}
+
+	PC = AOCPlayerController(NewPlayer);
+	if (PC != None)
+	{
+		if (PC.StatWrapper == none)
+		{
+			PC.StatWrapper = new(PC) PC.StatWrapperClass;
+			PC.StatWrapper.Initialize(none);
+		}
+
+		PC.PlayStartUpMessage(StartupStage);
+		PC.ClientSetSpeechRecognitionObject(SpeechRecognitionData);
+	}
+	
+	//NOPE
+	//@hack: unfortunately the character construction process requires game tick so we can't be paused while
+	// clients are doing it or they will appear to hang on the loading screen
+	//Pausers.length = 0;
+	//WorldInfo.Pauser = None;
+
+	if (bIsRealGame)
+	{
+		PerformRealGameActions(PC);
+	}   
+
+	RemoteConsole.GameEvent_PlayerConnect(NewPlayer.PlayerReplicationInfo);
+
+	if ( LocalPlayer(NewPlayer.Player) == None )
+		return;
+
+	// if local player, notify level actors
+	ForEach AllActors(class'Actor', A)
+		A.NotifyLocalPlayerTeamReceived();
+
+	//Notify new player of customization enforcement
+	ICPMPlayerController(PC).NotifyForcedCustomizationOption(GlobCfg.default.ForceCustomizationOn);
+}
+
+//Customization hook
+event InitGame( string Options, out string ErrorMessage )
+{
+	local AOCDownloadableContentManager DLCManager;
+	local string MapName;
+
+	//`log("INIT GAME"@Options);
+	super.InitGame(Options, ErrorMessage);
+	CustomizationClass = class'CPMCustomizationContent'; //Class(DynamicLoadObject("CPMCustomizationContent",class'Class'));
+	//`log("CustomizationClass ="@CustomizationClass);
+	bSoakTesting = HasOption(Options, "SoakTesting");
+	NumBotsToSpawn = Clamp(GetIntOption( Options, "NumPlay", 0 ), 0, 32);
+	NumDummyBotsToSpawn = Clamp(GetIntOption( Options, "NumDummies", 0 ), 0, 64);
+	InitialNumBotsToSpawn = NumBotsToSpawn;
+	InitialNumDummyBotsToSpawn = NumDummyBotsToSpawn;
+	bLogGameplayEvents = bLogGameplayEvents || HasOption(Options, "LogGameplayEvents");
+	//`log("Log gameplay events? "@bLogGameplayEvents@HasOption(Options, "LogGameplayEvents"));
+	//`log("NUM BOTS TO SPAWN = "@NumBotsToSpawn);
+
+	fAutoBalanceInterval = FMax(fAutoBalanceInterval, 11.f);
+	//`log("CUR PLAYERS"@NumPlayers@NumTravellingPlayers);
+
+	InitRemoteConsole(Options);
+
+	DLCManager = AOCDownloadableContentManager( class'GameEngine'.static.GetDLCManager() );
+	if ( DLCManager != None && DLCManager.SDKMapList.Length > 0 )
+	{
+		foreach DLCManager.SDKMapList(MapName)
+		{
+			if ( MapList.Find(MapName) == INDEX_NONE )
+			{
+				//`log("SDK Map added to MapList: " $ MapName,,'DevDLC');
+				MapList.AddItem(MapName);
+			}
+		}
+	}
+}

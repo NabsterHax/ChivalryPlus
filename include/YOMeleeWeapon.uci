@@ -1,0 +1,224 @@
+/**
+ * Changes common to all CPM Melee Weapons (generally overriding AOCMeleeWeapon)
+ */
+
+//Stop kick recieving cooldown
+simulated function DisableShove()
+{
+	bShoveCooldown = false;
+	//SetTimer(1.0f, false, nameof(EnableShove)); --Might as well disable this timer
+}
+
+simulated state Windup
+{
+	//need this to stop dodging mid-kick
+	simulated event BeginState(Name PreviousStateName)
+	{
+		SyncServerToState('Windup', CurrentFireMode);
+		PrePawnState = AOCOwner.PawnState;
+		PrePawnVelocity = AOCOwner.Velocity;
+		StartQuickKickWindow();
+
+		if (!AOCOwner.StateVariables.bIsManualJumpDodge)
+			AOCOwner.bAltIsAttacking = true;
+		
+		// Notify AI
+		AOCOwner.NotifyPawnStartAttack();
+
+		if (CurrentFireMode == Attack_Sprint)
+		{
+			AOCOwner.ConsumeStamina(20);
+		}
+		else if (CurrentFireMode == Attack_Shove)
+		{
+			AOCOwner.StateVariables.bCanDodge = false;
+		}
+
+		//if (bDebugLogs)
+		//`log("START WINDUP");
+		CurrentAnimations = WindupAnimations;
+
+		AOCOwner.StateVariables.bIsAttacking = true;
+		//AOCOwner.StateVariables.bCanDodge = false;
+		// make sure user loses stamina if he attacks after he spawns
+		AOCOwner.bSprintConsumeStamina = true;
+
+		if (CurrentFireMode == Attack_Sprint)
+		{
+			AOCOwner.InitSprintAttack();
+			AOCOwner.StateVariables.bCanJump = false;
+		}
+
+		bWasHit = false;
+
+		PlayStateAnimation();
+
+		
+		if ((CurrentFireMode == Attack_Slash || CurrentFireMode == Attack_Overhead) && (AOCOwner.Role < ROLE_Authority || WorldInfo.NetMode == NM_Standalone) && !AOCOwner.bIsBot)
+			AOCPlayerController(AOCOwner.Controller).PlayCustomCamAnim(CurrentFireMode == Attack_Slash ? PrimaryAttackCamWindup : SecondaryAttackCamWindup);
+	}
+
+	
+	simulated function EndFire(byte FireModeNum)
+	{
+		super(UTWeapon).EndFire(FireModeNum);
+
+		if (IsTimerActive('PerformQuickKick'))
+		{
+			
+		}
+	}
+}
+
+simulated state Release
+{
+	simulated function BeginFire(byte FireModeNum)
+	{
+		super(AOCWeapon).BeginFire(FireModeNum);
+		if (EAttack(FireModeNum) != Attack_Shove && CurrentFireMode != Attack_Sprint)
+			HandleCombo(EAttack(FireModeNum));
+	}
+
+	/*
+	simulated function HandleCombo(EAttack ComboAttack)
+	{
+		if(AOCOwner.IsLocallyControlled())
+			ReleaseHandleCombo(ComboAttack);
+	}*/
+}
+
+simulated state Transition
+{
+	//Combo feinting is back!
+	simulated function DoFeintAttack()
+	{
+		if (bCanFeint && AOCOwner.HasEnoughStamina(iFeintStaminaCost) && CurrentFireMode != Attack_Shove && CurrentFireMode != Attack_Sprint)
+		{
+			if (AOCOwner.IsLocallyControlled())
+				AOCOwner.S_ConsumeStamina(iFeintStaminaCost);
+			AOCOwner.ManualReset();
+			//AOCOwner.ConsumeStamina(iFeintStaminaCost);
+			AOCOwner.ClearTimer('OnAttackAnimEnd');
+			AOCOwner.OnActionSucceeded(EACT_Feint);
+			ClearTimer('EndFeintWindow');
+			GotoState('Feint');
+		}
+		else
+		{
+			AOCOwner.OnActionFailed(EACT_Feint);
+		}
+	}
+}
+
+simulated state Recovery
+{
+	simulated event BeginState(Name PreviousStateName)
+	{
+		local bool bWasCombo;
+		bWasCombo = bJustPlayedCombo;
+
+		//if (bDebugLogs)
+		//`log("BEGIN RECOVERY");
+		super.BeginState(PreviousStateName);
+		AOCWepAttachment.GotoState('');
+		AOCOwner.RemoveDebuff(EDEBF_COMBO);
+		AOCOwner.RemoveDebuff(EDEBF_ATTACK);
+
+		// we're not in combo anymore, reset variables
+		iComboCount = 1;
+		AOCOwner.OnComboEnded();
+		MissCount = 0;
+		iIdenticalCombo = 1;
+		ComboHitCount = 0;
+		ePreviousAttack = Attack_Null;
+		eNextAttack = Attack_Null;
+		bJustPlayedCombo = false;
+		bIsInCombo = false;
+		bWantsToCombo = false;
+		AOCWepAttachment.ComboCount = iComboCount;
+		AOCWepAttachment.HitComboCount = ComboHitCount;
+		AOCOwner.StateVariables.bIsActiveShielding = false;
+		AOCOwner.StateVariables.bIsParrying = false;
+		AOCOwner.StateVariables.bCanDodge = true;
+		bCanPanicParry = true;
+
+		// Parry Recovery
+		if (PreviousStateName == 'ShieldUpIdle' || PreviousStateName == 'Parry' || PreviousStateName == 'ParryRelease')
+		{
+			AOCOwner.StateVariables.bCanParry = false;
+			//AOCOwner.StateVariables.bCanDodge = false;
+			bCanPanicParry = false;
+		}
+
+		// Queueing a parry during release skips recovery
+		if (AttackQueue == Attack_Parry)
+		{
+			if (AOCOwner.HasEnoughStamina(ComboToParryStaminaCost) && AOCOwner.StateVariables.bCanParry && bCanCombo)
+			{
+				iParryCameFromTransition = GetReleaseToParryAnimation(bWasCombo);
+				ActivateParry();
+				AOCOwner.ConsumeStamina(ComboToParryStaminaCost);
+			}
+			AttackQueue = Attack_Null;
+		}
+	}
+
+	simulated function BeginFire(byte FireModeNum)
+	{
+		super(AOCWeapon).BeginFire(FireModeNum);
+		PlaySound(SoundCue'A_Meta.cannot_do', true);
+		/*if (FireModeNum == Attack_Parry && AOCOwner.HasEnoughStamina(PanicParryStaminaCost) && AOCOwner.StateVariables.bCanParry && bCanPanicParry)
+		{
+			ActivateParry();
+			AOCOwner.ConsumeStamina(PanicParryStaminaCost);
+			bCanParryHitCounter = false;
+			
+			if (bEquipShield)
+			{
+				bUseExtraShieldDropTime = true;
+				fExtraShieldDropTime = 0.3f;
+			
+		}*/
+		if (!AOCOwner.StateVariables.bIsSprinting && bManualAllowQueue) 
+		{
+			AttackQueue = EAttack(FireModeNum);
+		}
+	}
+}
+
+
+simulated state ParryRelease
+{
+	simulated event BeginState(Name PreviousStateName)
+	{
+		bParryHitCounter = false;
+		bSuccessfulParry = false;
+		AOCOwner.StateVariables.bCanDodge = false;
+		super.BeginState(PreviousStateName);
+		if (bParryAttackQueueNoMore)
+		{
+			bWantParryToDrop = true;
+		}
+		bParryAttackQueueNoMore = false;
+	}
+
+	/** If we decide to do an attack during the recovery, perform the attack upon going back to active */
+	simulated function BeginFire(byte FireModeNum)
+	{
+		super.BeginFire(FireModeNum);
+
+		//`log("ATTACK QUEUE:"@bSuccessfulParry@bParryHitCounter);
+		// Don't attack queue in this state any longer
+		//if (!bSuccessfulParry)
+		//	AttackQueue = EAttack(FireModeNum);
+
+		if (AOCOwner.IsLocallyControlled() && Role < ROLE_Authority)
+		{
+			// Otherwise go into release after a 0.3 second blend
+			if (bSuccessfulParry && !bParryHitCounter && FireModeNum != Attack_Parry && FireModeNum != Attack_Shove && bCanParryHitCounter)
+			{
+				PerformParryHitCounter(FireModeNum);
+			}
+		}
+	}
+}

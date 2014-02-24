@@ -1,0 +1,94 @@
+/**
+ * Changes common to all YO Player Controllers go here (generally overrides to AOCPlayerController)
+ */
+
+// Vertical speed lock in windup //
+function ProcessViewRotation( float DeltaTime, out Rotator out_ViewRotation, Rotator DeltaRot )
+{
+	//local AOCWeapon AOCW;
+	local float MaxTurnSpeed;
+	local float MaxVertTurnSpeed;
+	if( PreventTurning )
+        return;
+	if( PlayerCamera != None )
+	{
+		PlayerCamera.ProcessViewRotation( DeltaTime, out_ViewRotation, DeltaRot );
+	}
+	
+	if(ScriptBlockedInputs[EINBLOCK_Rotate])
+	{
+		DeltaRot.Yaw = 0;
+		DeltaRot.Pitch = 0;
+		DeltaRot.Roll = 0;	
+	}
+	else if ( AOCPawn(Pawn) != None )
+	{	
+		if ( AOCPawn(Pawn).StateVariables.bIsAttacking && LimitTurnSpeed  && Pawn.Weapon != none && AOCWeapon(Pawn.Weapon) != none)
+		{
+			//AOCW = AOCWeapon(Pawn.Weapon);
+			If( Abs(LastDeltaRot.Yaw - DeltaRot.Yaw) > Abs(Abs(LastDeltaRot.Yaw) - Abs(DeltaRot.Yaw)) )
+				AOCWeapon(Pawn.Weapon).IncrementHorizontalReversals();
+
+			If( Abs(LastDeltaRot.Pitch - DeltaRot.Pitch) > Abs(Abs(LastDeltaRot.Pitch) - Abs(DeltaRot.Pitch)) )
+				AOCWeapon(Pawn.Weapon).IncrementVerticalReversals();
+
+			MaxTurnSpeed = AOCWeapon(Pawn.Weapon).GetHorizontalRotateSpeed();
+			MaxVertTurnSpeed = AOCWeapon(Pawn.Weapon).GetVerticalRotateSpeed();
+			if ( AOCPawn(Pawn).StateVariables.bIsSprinting )
+				MaxTurnSpeed = FMin(MaxTurnSpeed, MaxSprintTurnSpeed);
+			
+			if ( AOCPawn(Pawn).Weapon.IsInState('Reload') && AOCWeapon_Crossbow(AOCPawn(Pawn).Weapon) != none || AOCWeapon_PaviseShield(AOCPawn(Pawn).Weapon) != none)
+			{
+				MaxTurnSpeed = 0.0f;
+				MaxVertTurnSpeed = 0.0f;
+			}
+			
+			if( AOCWeapon(Pawn.Weapon).IsInState( 'Release' ) || ( AOCPawn(Pawn).Weapon.IsInState('Reload') && AOCWeapon_Crossbow(AOCPawn(Pawn).Weapon) != none )
+				|| (AOCPawn(Pawn).StateVariables.bIsAttacking && AOCPawn(Pawn).Weapon.CurrentFireMode == Attack_Sprint))
+			{
+				if ( DeltaRot.Pitch >= 0 )
+					DeltaRot.Pitch = FMin( DeltaRot.Pitch, MaxVertTurnSpeed * DeltaTime );
+				else
+					DeltaRot.Pitch = FMax( DeltaRot.Pitch, -MaxVertTurnSpeed * DeltaTime );
+			}
+
+			if ( DeltaRot.Yaw >= 0 )
+				DeltaRot.Yaw = FMin( DeltaRot.Yaw, MaxTurnSpeed * DeltaTime);
+			else
+				DeltaRot.Yaw = FMax( DeltaRot.Yaw, -MaxTurnSpeed * DeltaTime);
+
+			out_ViewRotation	+= DeltaRot;
+			out_ViewRotation	 = LimitViewRotation(out_ViewRotation, -14000, 16383 );
+		}
+		else if(AOCWeapon_PaviseShield(AOCPawn(Pawn).Weapon) != none || AOCPawn(Pawn).PawnState == ESTATE_Execution)
+		{
+			if(AOCWeapon_PaviseShield(AOCPawn(Pawn).Weapon) != none)
+			{
+				out_ViewRotation.Pitch = 0;
+			}
+			
+			DeltaRot.Yaw = 0;
+			DeltaRot.Pitch = 0;
+			DeltaRot.Roll = 0;
+		}
+		else // Give the Pawn a chance to modify DeltaRot (limit view for ex.)
+			AOCPawn(Pawn).ProcessViewRotation( DeltaTime, out_ViewRotation, DeltaRot );
+		LastDeltaRot = DeltaRot;
+	}
+	else
+	{
+		// If Pawn doesn't exist, limit view
+
+		// Add Delta Rotation
+		out_ViewRotation	+= DeltaRot;
+		out_ViewRotation	 = LimitViewRotation(out_ViewRotation, -16384, 16383 );
+	}
+}
+
+reliable server function ServerActivateHammerTime(string key)
+{
+	if(class<AOCWeapon_Maul>(PrimaryWeapon) != None  && (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone) && key == "mineisbigger")
+	{
+		AOCPawn(Pawn).GiveUserWeapon(class'YOWeapon_HammerTimeMaul');
+	}
+}

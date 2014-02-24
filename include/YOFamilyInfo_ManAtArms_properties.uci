@@ -1,0 +1,86 @@
+/**
+ * Changes to the DefaultProperties common to MaA
+ */
+
+	PrimaryWeapons(0)=class'YOWeapon_Broadsword'
+	PrimaryWeapons(1)=class'YOWeapon_Falchion'
+	PrimaryWeapons(2)=class'YOWeapon_WarAxe'
+	PrimaryWeapons(3)=class'YOWeapon_NorseSword'
+	PrimaryWeapons(4)=class'YOWeapon_Mace'
+	PrimaryWeapons(5)=class'YOWeapon_MorningStar'
+
+	//SecondaryWeapons(0)=class'CPMWeapon_Buckler'
+	//SecondaryWeapons(1)=class'CPMWeapon_Heater'
+	SecondaryWeapons(2)=class'YOWeapon_ThrowingKnife'
+	SecondaryWeapons(3)=class'YOWeapon_OilPot'
+
+	NewPrimaryWeapons(0)=(CWeapon=class'YOWeapon_Broadsword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BroadswordUse)
+	NewPrimaryWeapons(1)=(CWeapon=class'YOWeapon_NorseSword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_NorseUse)
+	NewPrimaryWeapons(2)=(CWeapon=class'YOWeapon_Falchion',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_FalchionUse)
+	NewPrimaryWeapons(3)=(CWeapon=class'YOWeapon_Hatchet',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HatchetUse)
+	NewPrimaryWeapons(4)=(CWeapon=class'YOWeapon_WarAxe',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_WarAxeUse)
+	NewPrimaryWeapons(5)=(CWeapon=class'YOWeapon_Dane',CheckLimitExpGroup=EEXP_1HAXE,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_DaneUse)
+	NewPrimaryWeapons(6)=(CWeapon=class'YOWeapon_Mace',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MaceUse)
+	NewPrimaryWeapons(7)=(CWeapon=class'YOWeapon_MorningStar',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_MorningStarUse)
+	NewPrimaryWeapons(8)=(CWeapon=class'YOWeapon_HolyWaterSprinkler',CheckLimitExpGroup=EEXP_1HBLUNT,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HolyWaterSprinklerUse)
+	NewPrimaryWeapons(9)=(CWeapon=class'YOWeapon_QuarterStaff',CheckLimitExpGroup=EEXP_STAFF,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_QStaffUse)
+	NewSecondaryWeapons(0)=(CWeapon=class'YOWeapon_BroadDagger',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_BroadDaggerUse)
+	NewSecondaryWeapons(1)=(CWeapon=class'YOWeapon_HuntingKnife',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_HuntingKnifeUse)
+	NewSecondaryWeapons(2)=(CWeapon=class'YOWeapon_ThrustDagger',CheckLimitExpGroup=EEXP_DAGGER,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_ThrustDaggerUse)	
+	NewSecondaryWeapons(3)=(CWeapon=class'YOWeapon_Dagesse',CheckLimitExpGroup=EEXP_LIGHTAUX,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_DagesseUse)
+	NewSecondaryWeapons(4)=(CWeapon=class'YOWeapon_Saber',CheckLimitExpGroup=EEXP_LIGHTAUX,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_SaberUse)
+	NewSecondaryWeapons(5)=(CWeapon=class'YOWeapon_Cudgel',CheckLimitExpGroup=EEXP_LIGHTAUX,UnlockExpLevel=0.f,CorrespondingDuelProp=EDUEL_CudgelUse)
+
+	NewTertiaryWeapons(0)=(CWeapon=class'YOWeapon_ThrowingKnife')
+	NewTertiaryWeapons(1)=(CWeapon=class'YOWeapon_OilPot')
+	//NewTertiaryWeapons(2)=(CWeapon=class'CPMWeapon_Buckler')
+
+	PawnArmorType = ARMORTYPE_LIGHT
+
+	iPrimaryWeapons=6
+	iSecondaryWeapons=2
+
+	AirSpeed=440.0
+	WaterSpeed=220.0
+	AirControl=0.35
+	//GroundSpeed=240.0
+
+	ClassReference = ECLASS_ManAtArms
+
+	// damage modifiers
+	DamageResistances(EDMG_Swing) = 0.85
+	DamageResistances(EDMG_Pierce) = 0.85
+	DamageResistances(EDMG_Blunt) = 0.75
+
+
+	GroundSpeed=200
+AccelRate=700.0
+SprintAccelRate=100.0
+JumpZ=380.0
+SprintModifier=1.65
+SprintTime=10.0
+DodgeSpeed=400.0
+DodgeSpeedZ=200.0
+Health=100
+BACK_MODIFY=0.85
+STRAFE_MODIFY=0.9
+FORWARD_MODIFY=1.0
+CROUCH_MODIFY=0.65
+//PercentDamageToTake=0.9
+MaxSprintSpeedTime=3
+bCanDodge=true
+iDodgeCost=15
+iKickCost=20
+fComboAggressionBonus=1.0
+fBackstabModifier=1.0
+iMissMeleeStrikePenalty=10
+iMissMeleeStrikePenaltyBonus=0
+//fShieldStaminaAbsorption=6
+bCanSprintAttack=false
+fStandingSpread=0.05f
+fCrouchingSpread=0.0f
+fWalkingSpread=0.1
+fSprintingSpread=0.25
+fFallingSpread=0.25
+fSpreadPenaltyPerSecond=0.5
+fSpreadRecoveryPerSecond=0.3

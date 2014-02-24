@@ -1,0 +1,76 @@
+/**
+ * Changes common to all YO game types go here (generally overrides to AOCGame)
+ */
+
+//Getting our fists to work//
+function AddMinimalInventory(Pawn PlayerPawn)
+{
+	//unused local vars
+	//local AOCWeapon PrimWeapon, SecWeapon, AltWep, TertWeapon;
+	PlayerPawn.InvManager.DiscardInventory();
+	AOCInventoryManager(PlayerPawn.InvManager).ClearAttachables();
+
+	AOCWeapon(PlayerPawn.CreateInventory(class'CPMWeapon_Fists', false));
+	AOCPawn(PlayerPawn).SwitchWeapon(4);
+}
+
+function AddDefaultInventory( Pawn PlayerPawn )
+{
+	local AOCWeapon PrimWeapon, SecWeapon, AltWep, TertWeapon;
+	PlayerPawn.InvManager.DiscardInventory();
+	AOCInventoryManager(PlayerPawn.InvManager).ClearAttachables();
+	
+//	super.AddDefaultInventory(PlayerPawn);
+	if (PlayerPawn == none);
+		////`log("PAWN IS NONE");
+
+	PrimWeapon = AOCWeapon(PlayerPawn.CreateInventory(AOCPawn(PlayerPawn).PawnInfo.myPrimary, false)); // store reference here so we can add shield as necessary
+	// Check for Alt Mode
+	if (PrimWeapon.AlternativeMode != class'AOCWeapon_None')
+	{
+		if (!PrimWeapon.bAltRequireShield || class<AOCWeapon_Shield>(AOCPawn(PlayerPawn).PawnInfo.myTertiary) != none)
+		{
+			AltWep = AOCWeapon( PlayerPawn.CreateInventory(PrimWeapon.default.AlternativeMode, true) );
+			AltWep.AllowedShieldClass = class<AOCWeapon_Shield>(AOCPawn(PlayerPawn).PawnInfo.myTertiary).default.Shield;
+		}
+
+		// Possibility alt weapon is ranged
+		if (AOCRangeWeapon(AltWep) != none)
+			AOCRangeWeapon(AltWep).RefreshProjectileType();
+	}
+	
+	SecWeapon = AOCWeapon(PlayerPawn.CreateInventory(AOCPawn(PlayerPawn).PawnInfo.mySecondary, true)); // store reference here so we can add shield as necessary
+	// Possibility secondary weapon is ranged
+	if (AOCRangeWeapon(SecWeapon) != none)
+		AOCRangeWeapon(SecWeapon).RefreshProjectileType();
+
+	//`log("SPAWN TERTIARY"@AOCPawn(PlayerPawn).PawnInfo.myTertiary);
+	if (class<AOCWeapon_Projectile>(AOCPawn(PlayerPawn).PawnInfo.myTertiary) != none || class<AOCWeapon_ExtraAmmo>(AOCPawn(PlayerPawn).PawnInfo.myTertiary) != none)
+	{
+		// Assign projectile to the weapon
+		AOCRangeWeapon(PrimWeapon).ChangeProjectileType(class<AOCWeapon_Projectile>(AOCPawn(PlayerPawn).PawnInfo.myTertiary).default.Proj);
+	}
+	else if (class<AOCWeapon_Shield>(AOCPawn(PlayerPawn).PawnInfo.myTertiary) == none)
+	{
+		TertWeapon = AOCWeapon(PlayerPawn.CreateInventory(AOCPawn(PlayerPawn).PawnInfo.myTertiary, true));
+		if (AOCRangeWeapon(TertWeapon) != none)
+			AOCRangeWeapon(TertWeapon).RefreshProjectileType();
+	}
+	else
+	{
+		if (PrimWeapon.bHaveShield)
+		{
+			PrimWeapon.AllowedShieldClass = class<AOCWeapon_Shield>(AOCPawn(PlayerPawn).PawnInfo.myTertiary).default.Shield;
+		}
+		if (SecWeapon.bHaveShield)
+			SecWeapon.AllowedShieldClass = class<AOCWeapon_Shield>(AOCPawn(PlayerPawn).PawnInfo.myTertiary).default.Shield;
+	}
+		////`log("CREATE INV ERROR");
+	 AOCWeapon(PlayerPawn.CreateInventory(class'CPMWeapon_Fists', true));
+
+	 if (AOCRangeWeapon(PrimWeapon) != none)
+		AOCRangeWeapon(PrimWeapon).RefreshProjectileType();
+
+    //PlayerPawn.AddDefaultInventory();
+	//AOCPawn(PlayerPawn).NotifyAttachmentsChanged();
+}

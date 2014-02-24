@@ -24,6 +24,11 @@ exec function AdminSetRUPNeeded(bool bRUPNeeded)
 	ServerSetRUPNeeded(bRUPNeeded);
 }
 
+exec function RE(optional name EventName)
+{
+	ClientDisplayConsoleMessage("Command Disabled");
+}
+
 reliable server function ServerSetRUPNeeded(bool bRUPNeeded)
 {
 	if (PlayerReplicationInfo.bAdmin || WorldInfo.NetMode == NM_Standalone)
@@ -112,6 +117,31 @@ reliable client function NotifyForcedCustomizationOption(bool forced)
 	bForcedCustomization = forced;
 }
 
+exec function SetCameraSprintMultiplier(float multiplier)
+{
+	ClientCfg.default.CameraSprintMultiplier = multiplier;
+	ClientCfg.static.StaticSaveConfig();
+}
+
+exec function SetCameraSprintToggle(bool enabled)
+{
+	ClientCfg.default.CameraSprintToggle = enabled;
+	ClientCfg.static.StaticSaveConfig();
+}
+
+exec function CameraSprint(bool Enabled)
+{
+	if(ClientCfg.default.CameraSprintToggle)
+	{
+		if(Enabled)
+			bCameraSprinting = !bCameraSprinting;
+	}
+	else
+	{
+		bCameraSprinting = Enabled;
+	}
+}
+
 // The START of a fix to FP spectating + fast free cam //
 State Spectating
 {
@@ -129,8 +159,8 @@ State Spectating
 
 	function ProcessMove(float DeltaTime, vector NewAccel, eDoubleClickDir DoubleClickMove, rotator DeltaRot)
 	{
-		NewAccel *= (bCameraSprinting ? 3.0 : 1.0);
-		SpectatorCameraSpeed = OriginalSpectatorCamSpeed * (bCameraSprinting ? 3.0 : 1.0);
+		NewAccel *= (bCameraSprinting ? ClientCfg.default.CameraSprintMultiplier : 1.0);
+		SpectatorCameraSpeed = OriginalSpectatorCamSpeed * (bCameraSprinting ? ClientCfg.default.CameraSprintMultiplier : 1.0);
 		super.ProcessMove(DeltaTime, NewAccel, DoubleClickMove, DeltaRot);
 	}
 

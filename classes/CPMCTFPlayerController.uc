@@ -1,4 +1,5 @@
 class CPMCTFPlayerController extends AOCCTFPlayerController
+	implements(ICPMPlayerController)
 	implements(ICPMReadyUpPC);
 
 var float OriginalSpectatorCamSpeed;

@@ -1,4 +1,5 @@
 class CPMCTF extends AOCCTF
+	implements(ICPMGame)
 	implements(ICPMReadyUpGame);
 
 var bool bAgathaRUP;

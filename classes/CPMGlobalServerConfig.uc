@@ -3,6 +3,7 @@ class CPMGlobalServerConfig extends Object
 
 //Server related options
 var config bool YeOldeBalance;
+var config bool WarMode;
 var config bool RUPNeeded;
 var config int  PauseMode;
 var config bool ForceCustomizationOn;

@@ -44,5 +44,5 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ KOTH"
+	ModDisplayString="Chiv+ KOTH                     "
 }

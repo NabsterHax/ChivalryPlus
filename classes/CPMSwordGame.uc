@@ -277,5 +277,5 @@ DefaultProperties
 	SpawnWaveInterval = 1
 	MinimumRespawnTime = 3
 
-	ModDisplayString="Chiv+ SwordGame"
+	ModDisplayString="Chiv+ SwordGame                     "
 }

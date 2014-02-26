@@ -5,16 +5,19 @@
 // Using chat for console commands --not working atm//
 reliable server function SendChatMessage(string Message, EAOCFaction DesignatedTeam)
 {
-	/*local string ConCmd;
-	ReceiveChatMessage("", "SENDCHATMSG"$Left(Message, 2)$"WAT", EFAC_ALL, true);
+	local string ConCmd;
 	if (Left(Message, 2) ~= "!" || Left(Message, 2) ~= " !")
 	{
-		ConCmd = Right(Message, Len(Message)-1);
-		ReceiveChatMessage("Console:", ConsoleCommand(ConCmd), EFAC_ALL, true);
-		if(!(Left(ConCmd, 11) ~= "AdminLogin"))
+		ConCmd = Mid(Message, 2, Len(Message)-3);
+		//ClientDisplayConsoleMessage("CONSOLE CMD DETECTED:"$ConCmd$":");
+		//ClientDisplayConsoleMessage("LEFT 11:"$Left(ConCmd, 10)$":");
+		
+		if(!(Left(ConCmd, 10) ~= "AdminLogin"))
 			AOCGame(WorldInfo.Game).BroadcastMessage(self, Message, DesignatedTeam);
+		
+		ConsoleCommand(ConCmd);
 	}
-	else*/
+	else
 		AOCGame(WorldInfo.Game).BroadcastMessage(self, Message, DesignatedTeam);
 }
 
@@ -25,6 +28,11 @@ exec function AdminSetRUPNeeded(bool bRUPNeeded)
 }
 
 exec function RE(optional name EventName)
+{
+	ClientDisplayConsoleMessage("Command Disabled");
+}
+
+exec function RemoteEvent(optional name EventName)
 {
 	ClientDisplayConsoleMessage("Command Disabled");
 }
@@ -142,6 +150,29 @@ exec function CameraSprint(bool Enabled)
 	}
 }
 
+exec function AboutPlus()
+{
+	ServerAboutPlus();
+}
+
+reliable server function ServerAboutPlus()
+{
+	ICPMGame(WorldInfo.Game).DisplayAboutPlus(self);
+}
+
+function bool CanSwitchPerspectives()
+{
+	if (IsInState('Dead'))
+	{
+		return false;
+	}
+	if (IsInState('Spectating'))
+	{
+		return true;
+	}
+	return AOCGRI(Worldinfo.GRI).PerspectiveLock == PLOCK_None;
+}
+
 // The START of a fix to FP spectating + fast free cam //
 State Spectating
 {
@@ -162,6 +193,12 @@ State Spectating
 		NewAccel *= (bCameraSprinting ? ClientCfg.default.CameraSprintMultiplier : 1.0);
 		SpectatorCameraSpeed = OriginalSpectatorCamSpeed * (bCameraSprinting ? ClientCfg.default.CameraSprintMultiplier : 1.0);
 		super.ProcessMove(DeltaTime, NewAccel, DoubleClickMove, DeltaRot);
+	}
+
+	exec function BehindView()	
+	{
+		SetBehindView(!bBehindView);
+		FixFOV();
 	}
 
 	simulated event GetPlayerViewPoint( out vector POVLocation, out Rotator POVRotation )

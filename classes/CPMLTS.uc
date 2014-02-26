@@ -32,5 +32,5 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ LTS"
+	ModDisplayString="Chiv+ LTS                     "
 }

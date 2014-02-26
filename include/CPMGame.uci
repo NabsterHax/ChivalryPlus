@@ -53,6 +53,27 @@ function ProModWelcome(Controller NewPC)
 	{
 		AOCPlayerController(NewPC).ReceiveChatMessage("","You are playing Chivalry+", EFAC_ALL, true, true, "#F24646");
 	}
+
+	DisplayAboutPlus(AOCPlayerController(NewPC));
+	AOCPlayerController(NewPC).ReceiveChatMessage("","Type !AboutPlus to view again.", EFAC_ALL, true, true, "#F24646");
+}
+
+function DisplayAboutPlus(AOCPlayerController NewPC)
+{
+	if(GlobCfg.default.WarMode)
+		NewPC.ReceiveChatMessage("","WAR MODE: ON", EFAC_ALL, true, true, "#F24646");
+	if(GlobCfg.default.RUPNeeded)
+		NewPC.ReceiveChatMessage("","+Ready Up", EFAC_ALL, true, true, "#F24646");
+	if(GlobCfg.default.PauseMode == 1)
+		NewPC.ReceiveChatMessage("","+Admin Pause", EFAC_ALL, true, true, "#F24646");
+	if(GlobCfg.default.PauseMode == 2)
+		NewPC.ReceiveChatMessage("","+Pause Request", EFAC_ALL, true, true, "#F24646");
+	if(GlobCfg.default.PauseMode == 3)
+		NewPC.ReceiveChatMessage("","+Anybody Pause", EFAC_ALL, true, true, "#F24646");
+	if(!GlobCfg.default.ForceCustomizationOn)
+		NewPC.ReceiveChatMessage("","+Customization Hiding", EFAC_ALL, true, true, "#F24646");
+	if(GlobCfg.default.TKPunishMode == 0)
+		NewPC.ReceiveChatMessage("","+TK Punish Off", EFAC_ALL, true, true, "#F24646");
 }
 
 //GlobCfg commands

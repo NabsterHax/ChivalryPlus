@@ -853,5 +853,5 @@ DefaultProperties
 
 	bWaitForTeams=true //change to true after testing!
 
-	ModDisplayString="Chiv+ LTSO"
+	ModDisplayString="Chiv+ LTSO                     "
 }

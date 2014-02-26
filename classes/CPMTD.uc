@@ -89,5 +89,5 @@ DefaultProperties
 	PlayerControllerClass=class'CPMTDPlayerController'
 	//DefaultPawnClass=class'CPMPawn'
 
-	ModDisplayString="Chiv+ TD"
+	ModDisplayString="Chiv+ TD                     "
 }

@@ -6,3 +6,4 @@ function SetPauseMode(int PlayerPauseMode);
 function int GetPauseMode();
 function ForceCustomizationOn(bool force);
 function SetTKPunishMode(int Mode);
+function DisplayAboutPlus(AOCPlayerController NewPC);

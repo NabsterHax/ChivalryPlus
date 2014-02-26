@@ -48,7 +48,7 @@ reliable server function ServerForceUnready()
 
 reliable client function ShowReadyUpHeader(bool bShow)
 {
-	AOCBaseHUD(myHUD).HUD.MainHud.ShowLargeHeaderText(bShow, "Both teams must type 'Ready' in console to begin.");
+	AOCBaseHUD(myHUD).HUD.MainHud.ShowLargeHeaderText(bShow, "One player from both teams must type '!Ready' in chat to begin.");
 }
 
 // ADVANCED PAUSING //
@@ -62,7 +62,7 @@ reliable server function ServerPause()
 	if( !IsPaused() )
 		SetPause(true);
 	else
-		ClientDisplayConsoleMessage("Server is already paused. Use Unpause to resume play.");
+		ClientDisplayConsoleMessage("Server is already paused. Use !Unpause to resume play.");
 }
 
 exec function Unpause()

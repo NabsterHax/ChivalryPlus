@@ -35,5 +35,5 @@ DefaultProperties
 	//TBS bugfix, lol.
 	bWaitForTeams=true
 
-	ModDisplayString="Chiv+ CTF"
+	ModDisplayString="Chiv+ CTF                     "
 }

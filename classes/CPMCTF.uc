@@ -35,5 +35,6 @@ DefaultProperties
 	//TBS bugfix, lol.
 	bWaitForTeams=true
 
-	ModDisplayString="Chiv+ CTF                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Capture The Flag"
 }

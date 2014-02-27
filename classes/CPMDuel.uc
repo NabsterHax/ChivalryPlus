@@ -13,5 +13,6 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ Vanilla Duel                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Duel"
 }

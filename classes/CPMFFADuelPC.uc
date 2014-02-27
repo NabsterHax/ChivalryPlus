@@ -152,8 +152,10 @@ function bool IsInDuel()
 		DuelOpponent=none;
 	if(!RequestedOpponent.IsAliveAndWell())
 		RequestedOpponent=none;
+	if(!ToBeDuelOpponent.IsAliveAndWell())
+		ToBeDuelOpponent=none;
 
-	return DuelOpponent != none;
+	return (DuelOpponent != none || ToBeDuelOpponent != none);
 }
 
 function RequestedOpponentTimeout()
@@ -393,6 +395,4 @@ DefaultProperties
 
 	DuelOpponent=none
 	RequestedOpponent=none
-
-	CustomizationClass=class'CPMCustomization'
 }

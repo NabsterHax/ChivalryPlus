@@ -32,5 +32,6 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ LTS                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Last Team Standing"
 }

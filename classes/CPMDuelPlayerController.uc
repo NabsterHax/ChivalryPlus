@@ -10,5 +10,4 @@ var bool bForcedCustomization;
 DefaultProperties
 {
 	ClientCfg = class'CPMGlobalClientConfig'
-	CustomizationClass=class'CPMCustomization'
 }

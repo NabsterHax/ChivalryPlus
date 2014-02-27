@@ -278,6 +278,4 @@ DefaultProperties
 	bRequestedHUD=false
 
 	ClientCfg = class'CPMGlobalClientConfig'
-
-	CustomizationClass=class'CPMCustomization'
 }

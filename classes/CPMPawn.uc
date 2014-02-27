@@ -392,5 +392,4 @@ reliable server function RequestBombHit(CPMBomb Bomb)
 
 DefaultProperties
 {	
-	CustomizationClass=class'CPMCustomization'
 }

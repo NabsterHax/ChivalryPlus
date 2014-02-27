@@ -44,5 +44,6 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ KOTH                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="King Of The Hill"
 }

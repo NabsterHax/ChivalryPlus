@@ -92,5 +92,6 @@ DefaultProperties
 	MinimumRespawnTime = 0
 	RoundTime=40 // doesn't work...
 
-	ModDisplayString="Chiv+ Free Duel                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Free Duel"
 }

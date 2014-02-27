@@ -89,5 +89,6 @@ DefaultProperties
 	PlayerControllerClass=class'CPMTDPlayerController'
 	//DefaultPawnClass=class'CPMPawn'
 
-	ModDisplayString="Chiv+ TD                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Team Deathmatch"
 }

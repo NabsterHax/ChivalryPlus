@@ -32,5 +32,6 @@ DefaultProperties
 	PlayerControllerClass=class'CPMTeamObjectivePC'
 	DefaultPawnClass=class'CPMPawn'
 
-	ModDisplayString="Chiv+ TO                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Team Objective"
 }

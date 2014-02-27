@@ -16,7 +16,7 @@ function ChangeToNewClass()
 		FindFirstAvailableLoadoutForCurrentFamilyInfo();
 	}
 
-	bIsCustomizationInfoValid = class'CPMCustomization'.static.AreCustomizationChoicesValidFor(CustomizationInfo, EFAC_FFA, CurrentFamilyInfo.default.ClassReference, PlayerReplicationInfo);
+	bIsCustomizationInfoValid = CustomizationClass.static.AreCustomizationChoicesValidFor(CustomizationInfo, EFAC_FFA, CurrentFamilyInfo.default.ClassReference, PlayerReplicationInfo);
 
 	if(bIsCustomizationInfoValid)
 	{
@@ -50,5 +50,4 @@ function ChangeToNewClass()
 DefaultProperties
 {
 	ClientCfg = class'CPMGlobalClientConfig'
-	CustomizationClass=class'CPMCustomization'
 }

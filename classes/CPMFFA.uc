@@ -31,5 +31,6 @@ DefaultProperties
 
 	GlobCfg = class'CPMGlobalServerConfig'
 
-	ModDisplayString="Chiv+ FFA                     "
+	ModDisplayString="Chivalry+"
+	ModeDisplayString="Free-For-All"
 }

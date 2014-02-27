@@ -191,6 +191,4 @@ DefaultProperties
 	TmpHealth=1.0
 	TmpStamina=1.0
 	bLevelUpOnActive=false
-
-	CustomizationClass=class'CPMCustomization'
 }
